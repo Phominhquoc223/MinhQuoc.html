@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cây Đa Tri Thức — Tin Học &amp; Ứng Dụng AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* Thiết lập font chữ Inter và chống tràn ngang trên mọi thiết bị */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      background: linear-gradient(180deg, #dff3ea 0%, #f3faf6 52%, #e4f2e7 100%);
+      color: #132a1e;
+    }
+
+    /* Chuyển động nhẹ nhàng cho tán lá và nút nhánh cây đa */
+    @keyframes gentleFloat {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    @keyframes swayLeaf {
+      0%, 100% {
+        transform: rotate(-0.8deg);
+      }
+      50% {
+        transform: rotate(0.8deg);
+      }
+    }
+
+    .branch-float {
+      animation: gentleFloat 4.2s ease-in-out infinite;
+    }
+
+    .branch-float-delayed {
+      animation: gentleFloat 4.8s ease-in-out 1.1s infinite;
+    }
+
+    .branch-float-slow {
+      animation: gentleFloat 5.2s ease-in-out 2s infinite;
+    }
+
+    .canopy-sway {
+      transform-origin: 600px 260px;
+      animation: swayLeaf 8s ease-in-out infinite;
+    }
+
+    /* Hiệu ứng phát sáng & nâng nút nhánh khi hover/focus */
+    .branch-btn {
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 0.25s ease,
+                  background-color 0.25s ease,
+                  border-color 0.25s ease;
+    }
+    .branch-btn:hover,
+    .branch-btn:focus-visible {
+      transform: scale(1.06) translateY(-2px);
+      box-shadow: 0 14px 32px -6px rgba(16, 185, 129, 0.42),
+                  0 0 0 4px rgba(16, 185, 129, 0.18);
+      outline: none;
+    }
+
+    /* Tùy chỉnh thanh cuộn cho modal */
+    .custom-scroll::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Thanh điều hướng trên cùng gọn gàng, hỗ trợ mở nhanh các nhánh -->
+  <header class="sticky top-0 z-30 w-full bg-white/85 backdrop-blur-md border-b border-emerald-900/10 shadow-sm">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-700 text-white font-bold shadow-sm shrink-0">
+          🌳
+        </span>
+        <div class="truncate">
+          <h1 class="text-sm sm:text-base font-bold text-emerald-950 truncate">
+            Tin Học &amp; Ứng Dụng AI
+          </h1>
+          <p class="text-[11px] sm:text-xs text-emerald-700 truncate">
+            Bản đồ học tập 8 chủ đề • Slide, Lab &amp; Tài liệu tham khảo
+          </p>
+        </div>
+      </div>
+
+      <nav class="flex items-center gap-1.5 sm:gap-2">
+        <button
+          type="button"
+          onclick="openModuleDrawer('slide')"
+          class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition cursor-pointer"
+        >
+          📘 Slide (8)
+        </button>
+        <button
+          type="button"
+          onclick="openModuleDrawer('lab')"
+          class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition cursor-pointer"
+        >
+          🧪 Lab (8)
+        </button>
+        <button
+          type="button"
+          onclick="openReferencesModal()"
+          class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-sky-700 hover:bg-sky-800 text-white shadow-sm transition cursor-pointer"
+        >
+          🔗 Tài liệu
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Khu vực chính: Sân khấu Cây Đa Nghệ Thuật SVG + Các Nút Nhánh Tương Tác -->
+  <main class="relative flex-1 w-full max-w-7xl mx-auto px-2 sm:px-6 py-4 sm:py-6 flex flex-col items-center justify-center">
+    <div class="relative w-full rounded-3xl overflow-hidden shadow-xl border border-emerald-900/10 bg-gradient-to-b from-[#d8f1e6] via-[#eef9f2] to-[#dceee0]">
+      <!-- SVG Cây Đa Cổ Thụ Nghệ Thuật -->
+      <svg
+        viewBox="0 0 1200 760"
+        class="w-full h-auto min-h-[430px] sm:min-h-[540px] md:min-h-[620px] block select-none"
+        role="img"
+        aria-label="Minh họa nghệ thuật cây đa cổ thụ với các nhánh Slide, Lab và Tài liệu tham khảo"
+      >
+        <defs>
+          <!-- Gradient bầu trời & ánh sáng xuyên tán -->
+          <radialGradient id="sunGlow" cx="50%" cy="22%" r="55%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+            <stop offset="55%" stop-color="#d1fae5" stop-opacity="0.35" />
+            <stop offset="100%" stop-color="#a7f3d0" stop-opacity="0" />
+          </radialGradient>
+
+          <!-- Gradient thân và cành cây đa -->
+          <linearGradient id="barkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#4a3222" />
+            <stop offset="45%" stop-color="#6b4832" />
+            <stop offset="100%" stop-color="#3c2618" />
+          </linearGradient>
+
+          <!-- Gradient tán lá cây đa -->
+          <linearGradient id="canopyDark" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#15803d" />
+            <stop offset="100%" stop-color="#14532d" />
+          </linearGradient>
+
+          <linearGradient id="canopyMid" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#22c55e" />
+            <stop offset="100%" stop-color="#15803d" />
+          </linearGradient>
+
+          <linearGradient id="canopyLight" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#4ade80" />
+            <stop offset="100%" stop-color="#16a34a" />
+          </linearGradient>
+
+          <!-- Gradient thảm cỏ & bãi đất -->
+          <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#86efac" stop-opacity="0.55" />
+            <stop offset="100%" stop-color="#4ade80" stop-opacity="0.75" />
+          </linearGradient>
+        </defs>
+
+        <!-- Ánh sáng nền -->
+        <rect x="0" y="0" width="1200" height="760" fill="url(#sunGlow)" />
+
+        <!-- Những đám mây nhẹ nhàng -->
+        <g fill="#ffffff" opacity="0.72">
+          <ellipse cx="185" cy="115" rx="68" ry="22" />
+          <ellipse cx="220" cy="105" rx="45" ry="20" />
+          <ellipse cx="1010" cy="130" rx="74" ry="24" />
+          <ellipse cx="972" cy="120" rx="48" ry="20" />
+        </g>
+
+        <!-- Thảm cỏ dưới gốc cây đa -->
+        <path d="M0,655 Q300,625 600,650 T1200,645 L1200,760 L0,760 Z" fill="url(#groundGrad)" />
+        <ellipse cx="600" cy="672" rx="340" ry="34" fill="#16a34a" opacity="0.22" />
+
+        <!-- Rễ phụ buông xuống từ các cành lớn (đặc trưng cây đa) -->
+        <g stroke="#5c3d28" stroke-linecap="round" fill="none" opacity="0.88">
+          <path d="M350,285 Q342,410 348,565" stroke-width="5" />
+          <path d="M395,295 Q388,430 392,585" stroke-width="4" />
+          <path d="M455,310 Q462,435 456,575" stroke-width="4.5" />
+          <path d="M745,305 Q738,430 744,570" stroke-width="4.5" />
+          <path d="M815,290 Q824,420 816,580" stroke-width="4" />
+          <path d="M865,280 Q872,395 866,540" stroke-width="5" />
+          <path d="M525,250 Q520,350 524,455" stroke-width="3.5" />
+          <path d="M675,250 Q680,355 676,460" stroke-width="3.5" />
+        </g>
+
+        <!-- Thân chính và các cành lớn tỏa ra -->
+        <g fill="url(#barkGrad)" stroke="#3b2516" stroke-width="2">
+          <!-- Gốc & thân chính -->
+          <path d="M535,665
+                   Q555,580 562,460
+                   Q566,360 555,260
+                   L645,260
+                   Q634,360 638,460
+                   Q645,580 668,665
+                   Q635,678 600,676
+                   Q565,678 535,665 Z" />
+
+          <!-- Bành rễ bám đất -->
+          <path d="M545,650 Q505,675 465,682 Q515,686 558,668 Z" />
+          <path d="M655,650 Q695,675 738,682 Q688,686 642,668 Z" />
+
+          <!-- Nhánh trái: hướng tới nút SLIDE -->
+          <path d="M565,375 Q440,320 315,295 Q310,315 320,322 Q440,350 568,415 Z" />
+
+          <!-- Nhánh phải: hướng tới nút LAB -->
+          <path d="M635,375 Q760,320 885,295 Q890,315 880,322 Q760,350 632,415 Z" />
+
+          <!-- Nhánh vươn cao / phải-dưới: hướng tới nút TÀI LIỆU THAM KHẢO -->
+          <path d="M625,445 Q775,455 925,492 Q920,512 910,515 Q770,482 622,482 Z" />
+
+          <!-- Các nhánh phụ nhỏ tạo độ tự nhiên -->
+          <path d="M575,310 Q510,235 450,205 Q446,218 455,224 Q510,255 572,332 Z" />
+          <path d="M625,310 Q695,235 755,205 Q759,218 750,224 Q695,255 628,332 Z" />
+        </g>
+
+        <!-- Tán lá đa xanh mát nhiều lớp (có chuyển động đung đưa nhẹ) -->
+        <g class="canopy-sway">
+          <!-- Lớp tán sau đậm màu -->
+          <circle cx="330" cy="245" r="95" fill="url(#canopyDark)" />
+          <circle cx="465" cy="185" r="110" fill="url(#canopyDark)" />
+          <circle cx="600" cy="155" r="125" fill="url(#canopyDark)" />
+          <circle cx="735" cy="185" r="110" fill="url(#canopyDark)" />
+          <circle cx="870" cy="245" r="95" fill="url(#canopyDark)" />
+
+          <!-- Lớp tán giữa -->
+          <circle cx="265" cy="265" r="78" fill="url(#canopyMid)" />
+          <circle cx="385" cy="205" r="96" fill="url(#canopyMid)" />
+          <circle cx="530" cy="150" r="105" fill="url(#canopyMid)" />
+          <circle cx="670" cy="150" r="105" fill="url(#canopyMid)" />
+          <circle cx="815" cy="205" r="96" fill="url(#canopyMid)" />
+          <circle cx="935" cy="265" r="78" fill="url(#canopyMid)" />
+
+          <!-- Lớp tán trên sáng đón nắng -->
+          <circle cx="320" cy="215" r="65" fill="url(#canopyLight)" opacity="0.92" />
+          <circle cx="460" cy="155" r="78" fill="url(#canopyLight)" opacity="0.92" />
+          <circle cx="600" cy="122" r="88" fill="url(#canopyLight)" opacity="0.92" />
+          <circle cx="740" cy="155" r="78" fill="url(#canopyLight)" opacity="0.92" />
+          <circle cx="880" cy="215" r="65" fill="url(#canopyLight)" opacity="0.92" />
+        </g>
+
+        <!-- Nhãn trang trí nhỏ trên thân cây -->
+        <g transform="translate(600, 560)" text-anchor="middle">
+          <rect x="-86" y="-20" width="172" height="36" rx="18" fill="#fefce8" stroke="#ca8a04" stroke-width="2" />
+          <text x="0" y="3" font-size="12" font-weight="700" fill="#854d0e">
+            TIN HỌC &amp; ỨNG DỤNG AI
+          </text>
+        </g>
+      </svg>
+
+      <!-- Lớp phủ các nút nhánh tương tác đặt ngay trên cành/nhánh cây đa -->
+      <!-- 1. Nhánh SLIDE (bên trái) -->
+      <div class="branch-float absolute top-[24%] sm:top-[27%] left-[5%] sm:left-[11%] md:left-[15%] z-10">
+        <button
+          type="button"
+          onclick="openModuleDrawer('slide')"
+          class="branch-btn cursor-pointer group flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl bg-white/95 hover:bg-emerald-50 border-2 border-emerald-600 shadow-lg text-left max-w-[230px] sm:max-w-[270px]"
+        >
+          <span class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl font-bold shrink-0 shadow-sm group-hover:scale-105 transition">
+            📘
+          </span>
+          <div class="min-w-0">
+            <span class="block text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+              Nhánh Lý Thuyết
+            </span>
+            <span class="block text-base sm:text-lg font-extrabold text-emerald-950 leading-tight">
+              SLIDE BÀI GIẢNG
+            </span>
+            <span class="block text-xs text-slate-600 truncate">
+              8 chủ đề • Mở &amp; tải slide
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <!-- 2. Nhánh LAB (bên phải trên) -->
+      <div class="branch-float-delayed absolute top-[24%] sm:top-[27%] right-[5%] sm:right-[11%] md:right-[15%] z-10">
+        <button
+          type="button"
+          onclick="openModuleDrawer('lab')"
+          class="branch-btn cursor-pointer group flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl bg-white/95 hover:bg-amber-50 border-2 border-amber-600 shadow-lg text-left max-w-[230px] sm:max-w-[270px]"
+        >
+          <span class="w-11 h-11 rounded-xl bg-amber-600 text-white flex items-center justify-center text-xl font-bold shrink-0 shadow-sm group-hover:scale-105 transition">
+            🧪
+          </span>
+          <div class="min-w-0">
+            <span class="block text-[11px] font-bold uppercase tracking-wider text-amber-700">
+              Nhánh Thực Hành
+            </span>
+            <span class="block text-base sm:text-lg font-extrabold text-amber-950 leading-tight">
+              BÀI TẬP LAB
+            </span>
+            <span class="block text-xs text-slate-600 truncate">
+              8 bài lab • Hướng dẫn &amp; file
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <!-- 3. Nhánh TÀI LIỆU THAM KHẢO (nhánh phải dưới / góc học liệu) -->
+      <div class="branch-float-slow absolute bottom-[12%] sm:bottom-[15%] right-[5%] sm:right-[9%] md:right-[12%] z-10">
+        <button
+          type="button"
+          onclick="openReferencesModal()"
+          class="branch-btn cursor-pointer group flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl bg-white/95 hover:bg-sky-50 border-2 border-sky-700 shadow-lg text-left max-w-[245px] sm:max-w-[290px]"
+        >
+          <span class="w-11 h-11 rounded-xl bg-sky-700 text-white flex items-center justify-center text-xl font-bold shrink-0 shadow-sm group-hover:scale-105 transition">
+            🔗
+          </span>
+          <div class="min-w-0">
+            <span class="block text-[11px] font-bold uppercase tracking-wider text-sky-700">
+              Nguồn Chuẩn Xác
+            </span>
+            <span class="block text-sm sm:text-base font-extrabold text-sky-950 leading-tight">
+              TÀI LIỆU THAM KHẢO
+            </span>
+            <span class="block text-xs text-slate-600 truncate">
+              Liên kết chính thống mở tab mới
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Thanh tóm tắt nhanh 8 chủ đề bên dưới cây đa để tiện duyệt trên mọi màn hình -->
+    <section aria-label="Danh sách 8 chủ đề môn học" class="w-full mt-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 px-1">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-emerald-950">
+            8 Chủ Đề Cốt Lõi Của Môn Học
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-600">
+            Chọn trực tiếp một bài để xem tóm tắt, mở Slide, làm Lab hoặc cấu hình đường dẫn file đính kèm của bạn.
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="openPathConfigModal()"
+          class="self-start sm:self-auto px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 shadow-sm transition cursor-pointer"
+        >
+          ⚙️ Cấu hình đường dẫn file Slide/Lab
+        </button>
+      </div>
+
+      <div id="topicsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <!-- Các thẻ 8 chủ đề được render tự động bằng JavaScript -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal / Bảng danh sách 8 bài theo nhánh SLIDE hoặc LAB -->
+  <div
+    id="drawerModal"
+    class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="drawerTitle"
+  >
+    <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+      <!-- Header modal -->
+      <div id="drawerHeader" class="px-5 py-4 bg-emerald-800 text-white flex items-center justify-between gap-3">
+        <div>
+          <p id="drawerSubtitle" class="text-xs uppercase tracking-wider font-semibold text-emerald-200"></p>
+          <h3 id="drawerTitle" class="text-lg sm:text-xl font-extrabold"></h3>
+        </div>
+        <button
+          type="button"
+          onclick="closeModal('drawerModal')"
+          aria-label="Đóng cửa sổ"
+          class="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold flex items-center justify-center transition cursor-pointer shrink-0"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Nội dung danh sách 8 bài -->
+      <div id="drawerBody" class="p-4 sm:p-6 overflow-y-auto custom-scroll space-y-3 flex-1 bg-slate-50">
+        <!-- Render danh sách bài bằng JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal chi tiết từng bài (Nội dung tóm tắt + Slide + Lab + Mở/Tải file) -->
+  <div
+    id="detailModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/65 backdrop-blur-xs p-3 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="detailTitle"
+  >
+    <div class="bg-white w-full max-w-3xl max-h-[92vh] rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+      <div class="px-5 py-4 bg-slate-900 text-white flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <span id="detailBadge" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 mb-1"></span>
+          <h3 id="detailTitle" class="text-lg sm:text-xl font-extrabold leading-snug"></h3>
+        </div>
+        <button
+          type="button"
+          onclick="closeModal('detailModal')"
+          aria-label="Đóng chi tiết bài học"
+          class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold flex items-center justify-center transition cursor-pointer shrink-0"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div id="detailBody" class="p-5 sm:p-6 overflow-y-auto custom-scroll space-y-5 flex-1">
+        <!-- Nội dung chi tiết bài học render bằng JS -->
+      </div>
+
+      <div class="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          onclick="closeModal('detailModal')"
+          class="px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:bg-slate-200 text-slate-800 border border-slate-300 transition cursor-pointer"
+        >
+          ← Quay lại
+        </button>
+        <button
+          type="button"
+          onclick="openPathConfigModal()"
+          class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-900 text-white transition cursor-pointer"
+        >
+          ⚙️ Sửa đường dẫn file bài này
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tài Liệu Tham Khảo -->
+  <div
+    id="referencesModal"
+    class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="referencesTitle"
+  >
+    <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+      <div class="px-5 py-4 bg-sky-800 text-white flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-wider font-semibold text-sky-200">
+            Nguồn Tra Cứu Chính Thống
+          </p>
+          <h3 id="referencesTitle" class="text-lg sm:text-xl font-extrabold">
+            Tài Liệu Tham Khảo Môn Tin Học &amp; Ứng Dụng AI
+          </h3>
+        </div>
+        <button
+          type="button"
+          onclick="closeModal('referencesModal')"
+          aria-label="Đóng tài liệu tham khảo"
+          class="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold flex items-center justify-center transition cursor-pointer shrink-0"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto custom-scroll space-y-3 flex-1 bg-slate-50">
+        <p class="text-xs sm:text-sm text-slate-600 bg-sky-50 border border-sky-200 rounded-2xl p-3.5">
+          Tất cả liên kết dưới đây đều là tài liệu học thuật, cổng thông tin chính thức hoặc tài liệu chuẩn quốc tế, mở ở tab mới (<code class="font-semibold">target="_blank"</code>) để bạn dễ dàng tra cứu khi học lý thuyết và làm bài Lab.
+        </p>
+
+        <div id="referencesList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- Render danh sách tài liệu tham khảo bằng JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cấu hình đường dẫn file Slide/Lab của người dùng -->
+  <div
+    id="configModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/65 backdrop-blur-xs p-3 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="configTitle"
+  >
+    <div class="bg-white w-full max-w-3xl max-h-[90vh] rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+      <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-wider font-semibold text-amber-300">
+            Tùy Chỉnh Đường Dẫn File Thực Tế
+          </p>
+          <h3 id="configTitle" class="text-lg sm:text-xl font-extrabold">
+            Gắn Đường Dẫn File Slide &amp; Lab Đính Kèm
+          </h3>
+        </div>
+        <button
+          type="button"
+          onclick="closeModal('configModal')"
+          aria-label="Đóng cấu hình đường dẫn"
+          class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold flex items-center justify-center transition cursor-pointer shrink-0"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto custom-scroll space-y-4 flex-1">
+        <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 text-xs sm:text-sm text-amber-950 space-y-1">
+          <p class="font-bold">Hướng dẫn gắn file của bạn:</p>
+          <p>
+            Nếu bạn đặt file HTML này cùng thư mục với các file slide/lab (ví dụ: <code class="bg-white px-1.5 py-0.5 rounded border">Slide1.pdf</code> hoặc <code class="bg-white px-1.5 py-0.5 rounded border">Lab1_TongQuan.docx</code>), chỉ cần nhập tên/đường dẫn tương đối hoặc link Google Drive/OneDrive và bấm <strong>Lưu cấu hình</strong>.
+          </p>
+        </div>
+
+        <div id="configInputs" class="space-y-3">
+          <!-- Render form nhập đường dẫn từng bài bằng JS -->
+        </div>
+      </div>
+
+      <div class="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          onclick="resetFilePaths()"
+          class="px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 transition cursor-pointer"
+        >
+          Khôi phục mặc định
+        </button>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            onclick="closeModal('configModal')"
+            class="px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            onclick="saveFilePaths()"
+            class="px-5 py-2 rounded-xl text-sm font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition cursor-pointer"
+          >
+            Lưu cấu hình
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hộp thông báo trạng thái (thay thế hoàn toàn alert/confirm) -->
+  <div
+    id="toastBox"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] hidden max-w-md w-[92%] px-4 py-3 rounded-2xl bg-slate-900 text-white text-xs sm:text-sm font-medium shadow-2xl border border-slate-700 items-center justify-between gap-3"
+    role="status"
+    aria-live="polite"
+  >
+    <span id="toastMessage"></span>
+    <button
+      type="button"
+      onclick="hideToast()"
+      class="text-slate-300 hover:text-white font-bold cursor-pointer"
+      aria-label="Đóng thông báo"
+    >
+      ✕
+    </button>
+  </div>
+
+  <script>
+    /**
+     * Dữ liệu 8 bài học của môn Tin học và ứng dụng AI
+     * Tích hợp nội dung trọng tâm Slide, mục tiêu, đề cương/yêu cầu Lab và tên file mặc định.
+     */
+    const COURSE_MODULES = [
+      {
+        id: 1,
+        code: "Bài 1",
+        title: "Tổng quan CMCN 4.0 & Chuyển đổi số",
+        icon: "🚀",
+        defaultSlideFile: "Slide1_TongQuan_CMCN40_ChuyenDoiSo.pdf",
+        defaultLabFile: "Lab1_DanhGia_ChuyenDoiSo.pdf",
+        summary:
+          "Tìm hiểu sự tiến hóa của các cuộc cách mạng công nghiệp (1.0 đến 4.0), các công nghệ trụ cột (IoT, Big Data, AI, Cloud) và bản chất của chuyển đổi số so với tin học hóa/số hóa.",
+        slideHighlights: [
+          "Đặc trưng của Cách mạng công nghiệp lần thứ tư và nền kinh tế số.",
+          "Phân biệt Số hóa dữ liệu, Số hóa quy trình và Chuyển đổi số toàn diện.",
+          "Khung chuyển đổi số trong giáo dục, doanh nghiệp và dịch vụ công."
+        ],
+        labObjective:
+          "Khảo sát và đánh giá mức độ ứng dụng công nghệ số của một tổ chức/cơ sở học tập hoặc doanh nghiệp địa phương.",
+        labTasks: [
+          "Lập bảng liệt kê các quy trình thủ công và quy trình đã số hóa tại đơn vị khảo sát.",
+          "Nhận diện ít nhất 3 cơ hội áp dụng công nghệ số (Cloud, AI, biểu mẫu số, tự động hóa).",
+          "Trình bày báo cáo ngắn (1–2 trang) kèm đề xuất lộ trình chuyển đổi số khả thi."
+        ]
+      },
+      {
+        id: 2,
+        code: "Bài 2",
+        title: "Phần cứng & Hệ điều hành máy tính",
+        icon: "💻",
+        defaultSlideFile: "Slide2_PhanCung_HeDieuHanh.pdf",
+        defaultLabFile: "Lab2_KhaoSat_HeThong_Va_CLI.pdf",
+        summary:
+          "Khám phá kiến trúc máy tính theo mô hình Von Neumann, vai trò của CPU, RAM, ổ lưu trữ, thiết bị vào/ra và chức năng cốt lõi của hệ điều hành trong quản lý tài nguyên.",
+        slideHighlights: [
+          "Cấu trúc và nguyên lý hoạt động của CPU, bộ nhớ phân cấp và bus hệ thống.",
+          "So sánh SSD/NVMe với HDD, các chuẩn kết nối phổ biến và hiệu năng hệ thống.",
+          "Quản lý tiến trình, bộ nhớ, hệ thống tệp và phân quyền người dùng trên HĐH."
+        ],
+        labObjective:
+          "Kiểm tra cấu hình phần cứng thực tế, tối ưu quản lý tệp/tiến trình và thực hành thao tác dòng lệnh cơ bản.",
+        labTasks: [
+          "Trích xuất và ghi nhận thông số CPU, RAM, dung lượng/loại ổ đĩa và phiên bản HĐH.",
+          "Thực hành tổ chức cây thư mục, nén/giải nén, kiểm tra tiến trình đang chạy.",
+          "Viết nhật ký xử lý một tình huống chậm máy hoặc đầy bộ nhớ lưu trữ."
+        ]
+      },
+      {
+        id: 3,
+        code: "Bài 3",
+        title: "Điện toán đám mây & Công cụ cộng tác số",
+        icon: "☁️",
+        defaultSlideFile: "Slide3_DienToanDamMay_CongTacSo.pdf",
+        defaultLabFile: "Lab3_LamViec_Nhom_Tren_Cloud.pdf",
+        summary:
+          "Nắm vững các mô hình dịch vụ đám mây (IaaS, PaaS, SaaS), mô hình triển khai (Public, Private, Hybrid) và quy trình làm việc nhóm hiệu quả trên nền tảng cộng tác trực tuyến.",
+        slideHighlights: [
+          "Ưu điểm, chi phí vận hành và rủi ro bảo mật của điện toán đám mây.",
+          "Đồng bộ hóa tệp, phân quyền xem/nhận xét/chỉnh sửa và lịch sử phiên bản.",
+          "Quản lý dự án nhóm trực tuyến, bảng công việc và tài liệu dùng chung."
+        ],
+        labObjective:
+          "Thiết lập không gian làm việc nhóm trên nền tảng đám mây và vận hành quy trình cộng tác tài liệu có kiểm soát phiên bản.",
+        labTasks: [
+          "Tạo cấu trúc thư mục chuẩn trên đám mây và thiết lập phân quyền hợp lý cho thành viên.",
+          "Cùng biên soạn tài liệu chung, sử dụng Comment/Suggesting và khôi phục phiên bản cũ.",
+          "Xây dựng bảng theo dõi tiến độ công việc nhóm (Kanban/Task list) minh bạch."
+        ]
+      },
+      {
+        id: 4,
+        code: "Bài 4",
+        title: "Mạng máy tính, Internet & An toàn thông tin",
+        icon: "🔐",
+        defaultSlideFile: "Slide4_MangMayTinh_Internet_ATTT.pdf",
+        defaultLabFile: "Lab4_KiemTra_Mang_Va_BaoMat.pdf",
+        summary:
+          "Hiểu cách dữ liệu truyền đi qua mạng (LAN/WAN, IP, DNS, HTTP/HTTPS), các mối đe dọa phổ biến (Phishing, Malware, rò rỉ dữ liệu) và biện pháp phòng vệ cá nhân/tổ chức.",
+        slideHighlights: [
+          "Mô hình mạng, địa chỉ IP, phân giải tên miền DNS và giao thức truyền tải an toàn HTTPS.",
+          "Nhận diện tấn công giả mạo (Phishing), mã độc, mật khẩu yếu và lỗ hổng cấu hình.",
+          "Xác thực đa yếu tố (MFA), sao lưu 3-2-1 và nguyên tắc tối thiểu đặc quyền."
+        ],
+        labObjective:
+          "Chẩn đoán kết nối mạng cơ bản và thực hành thiết lập các lớp bảo vệ tài khoản, dữ liệu cá nhân.",
+        labTasks: [
+          "Sử dụng các lệnh kiểm tra mạng cơ bản (IP, kết nối, DNS) và giải thích ý nghĩa kết quả.",
+          "Kiểm tra độ mạnh mật khẩu, bật xác thực hai lớp (2FA/MFA) và rà soát quyền truy cập ứng dụng.",
+          "Phân tích 3 tình huống email/liên kết nghi ngờ lừa đảo và đưa ra cách xử lý an toàn."
+        ]
+      },
+      {
+        id: 5,
+        code: "Bài 5",
+        title: "Tư duy thuật toán & Nhập môn lập trình",
+        icon: "🧩",
+        defaultSlideFile: "Slide5_TuDuyThuatToan_LapTrinh.pdf",
+        defaultLabFile: "Lab5_XayDung_ThuatToan_Va_Code.pdf",
+        summary:
+          "Rèn luyện tư duy phân rã bài toán, nhận diện mẫu, trừu tượng hóa và thiết kế thuật toán bằng lưu đồ/mã giả trước khi hiện thực hóa bằng ngôn ngữ lập trình.",
+        slideHighlights: [
+          "Bốn trụ cột tư duy tính toán (Computational Thinking) và đánh giá tính đúng đắn thuật toán.",
+          "Cấu trúc điều khiển: tuần tự, rẽ nhánh (if/else), lặp (for/while) và biến/kiểu dữ liệu.",
+          "Tách hàm/chương trình con để tái sử dụng, dễ đọc và dễ kiểm thử."
+        ],
+        labObjective:
+          "Chuyển hóa bài toán thực tế thành thuật toán rõ ràng và viết chương trình hoàn chỉnh có kiểm thử nhiều bộ dữ liệu.",
+        labTasks: [
+          "Xác định Input, Output, điều kiện biên và vẽ lưu đồ hoặc viết mã giả cho bài toán được giao.",
+          "Hiện thực hóa thuật toán bằng code, sử dụng hợp lý cấu trúc rẽ nhánh, vòng lặp và hàm.",
+          "Chạy kiểm thử với các trường hợp bình thường, biên và dữ liệu không hợp lệ."
+        ]
+      },
+      {
+        id: 6,
+        code: "Bài 6",
+        title: "Phân tích dữ liệu & Bảng tính thông minh",
+        icon: "📊",
+        defaultSlideFile: "Slide6_PhanTichDuLieu_BangTinh.pdf",
+        defaultLabFile: "Lab6_XuLy_Va_TrucQuan_DuLieu.pdf",
+        summary:
+          "Làm sạch dữ liệu thô, sử dụng hàm logic/tra cứu/tổng hợp trên bảng tính, tạo PivotTable và trực quan hóa dữ liệu bằng biểu đồ để hỗ trợ ra quyết định.",
+        slideHighlights: [
+          "Quy trình làm sạch dữ liệu: chuẩn hóa định dạng, xử lý giá trị thiếu và trùng lặp.",
+          "Nhóm hàm thống kê có điều kiện, hàm logic, hàm tra cứu và tổng hợp đa chiều (Pivot).",
+          "Nguyên tắc chọn biểu đồ trực quan, tránh hiểu lầm dữ liệu và trình bày insight."
+        ],
+        labObjective:
+          "Làm sạch bộ dữ liệu thực hành, tổng hợp chỉ số bằng hàm và PivotTable, đồng thời dựng biểu đồ trực quan.",
+        labTasks: [
+          "Kiểm tra và làm sạch các bản ghi lỗi, thiếu thông tin hoặc sai định dạng ngày/số.",
+          "Tính toán các chỉ tiêu tổng hợp theo nhóm và tạo ít nhất 1 bảng tổng hợp PivotTable.",
+          "Thiết kế dashboard/biểu đồ rõ tiêu đề, đơn vị và rút ra 3 nhận xét quan trọng từ dữ liệu."
+        ]
+      },
+      {
+        id: 7,
+        code: "Bài 7",
+        title: "Trí tuệ nhân tạo (AI) & Ứng dụng trong học tập, công việc",
+        icon: "🤖",
+        defaultSlideFile: "Slide7_TriTueNhanTao_UngDung.pdf",
+        defaultLabFile: "Lab7_PromptEngineering_Va_AI_Workflow.pdf",
+        summary:
+          "Hiểu tổng quan về AI, Machine Learning và AI tạo sinh (GenAI), kỹ thuật đặt câu lệnh (Prompt Engineering), kiểm chứng thông tin và ứng dụng có trách nhiệm trong học tập/công việc.",
+        slideHighlights: [
+          "Phân biệt AI truyền thống, học máy và mô hình ngôn ngữ/đa phương thức tạo sinh.",
+          "Kỹ thuật viết prompt rõ vai trò, ngữ cảnh, nhiệm vụ, ràng buộc và định dạng đầu ra.",
+          "Hạn chế của AI: ảo giác thông tin (hallucination), thiên lệch dữ liệu và yêu cầu kiểm chứng."
+        ],
+        labObjective:
+          "Thực hành thiết kế prompt hiệu quả cho các tác vụ học tập/văn phòng và đối chiếu, kiểm chứng độ chính xác của kết quả AI.",
+        labTasks: [
+          "So sánh kết quả AI giữa prompt sơ sài và prompt có cấu trúc (Role, Context, Task, Format).",
+          "Áp dụng AI hỗ trợ tóm tắt tài liệu, lên dàn ý hoặc gợi ý giải pháp nhưng tự kiểm chứng nguồn.",
+          "Ghi nhận các lỗi sai/ảo giác thông tin của AI (nếu có) và cách chỉnh sửa để đạt kết quả tin cậy."
+        ]
+      },
+      {
+        id: 8,
+        code: "Bài 8",
+        title: "Đạo đức số, Pháp luật & Kỹ năng công dân số",
+        icon: "⚖️",
+        defaultSlideFile: "Slide8_DaoDucSo_PhapLuat_CongDanSo.pdf",
+        defaultLabFile: "Lab8_TrachNhiem_So_Va_BanQuyen.pdf",
+        summary:
+          "Nắm vững quy định pháp luật liên quan đến không gian mạng, bảo vệ dữ liệu cá nhân, bản quyền và liêm chính học thuật khi sử dụng công nghệ số và AI.",
+        slideHighlights: [
+          "Trách nhiệm pháp lý, ứng xử văn minh trên môi trường số và phòng chống bắt nạt trực tuyến.",
+          "Quyền riêng tư, bảo vệ dữ liệu cá nhân và tránh chia sẻ thông tin nhạy cảm trái phép.",
+          "Bản quyền phần mềm/nội dung số, trích dẫn nguồn và liêm chính học thuật trong kỷ nguyên AI."
+        ],
+        labObjective:
+          "Phân tích các tình huống đạo đức, bản quyền và pháp lý số thực tế; xây dựng bộ quy tắc sử dụng công nghệ có trách nhiệm.",
+        labTasks: [
+          "Đánh giá tính hợp pháp và chuẩn mực đạo đức trong các tình huống chia sẻ dữ liệu, hình ảnh hoặc bài làm.",
+          "Thực hành ghi nguồn tham khảo và khai báo mức độ hỗ trợ của công cụ AI đúng quy định.",
+          "Xây dựng checklist 5 nguyên tắc công dân số có trách nhiệm cho cá nhân hoặc nhóm học tập."
+        ]
+      }
+    ];
+
+    /**
+     * Danh sách tài liệu tham khảo chính thống có đường link https:// đầy đủ
+     */
+    const REFERENCES_LIST = [
+      {
+        category: "Chuyển đổi số & Công dân số",
+        title: "Cổng Thông tin Chuyển đổi số Quốc gia",
+        org: "Bộ Thông tin và Truyền thông (Việt Nam)",
+        url: "https://dx.gov.vn/",
+        description: "Cập nhật chủ trương, khung kiến trúc, cẩm nang chuyển đổi số và các nền tảng số quốc gia."
+      },
+      {
+        category: "Trí tuệ nhân tạo & Đạo đức AI",
+        title: "Khuyến nghị về Đạo đức Trí tuệ Nhân tạo (Ethics of AI)",
+        org: "UNESCO",
+        url: "https://www.unesco.org/en/artificial-intelligence/recommendation-ethics",
+        description: "Chuẩn mực quốc tế về phát triển và sử dụng AI minh bạch, công bằng, an toàn và lấy con người làm trung tâm."
+      },
+      {
+        category: "Trí tuệ nhân tạo ứng dụng",
+        title: "Google AI Essentials & Hướng dẫn AI",
+        org: "Google",
+        url: "https://grow.google/ai/",
+        description: "Tài liệu nền tảng về cách đặt prompt, ứng dụng AI hiệu quả trong công việc và lưu ý sử dụng AI có trách nhiệm."
+      },
+      {
+        category: "An toàn thông tin",
+        title: "OWASP Top 10 — Rủi ro Bảo mật Ứng dụng Web",
+        org: "OWASP Foundation",
+        url: "https://owasp.org/www-project-top-ten/",
+        description: "Tài liệu chuẩn quốc tế giúp nhận diện các lỗ hổng và nguy cơ mất an toàn thông tin phổ biến."
+      },
+      {
+        category: "An toàn thông tin",
+        title: "NIST Cybersecurity Framework",
+        org: "National Institute of Standards and Technology (NIST)",
+        url: "https://www.nist.gov/cyberframework",
+        description: "Khung quản trị rủi ro an ninh mạng chuẩn mực gồm các chức năng nhận diện, bảo vệ, phát hiện, ứng phó và phục hồi."
+      },
+      {
+        category: "Tư duy lập trình & Web",
+        title: "MDN Web Docs — Kiến thức Nền tảng Web & Lập trình",
+        org: "Mozilla Developer Network",
+        url: "https://developer.mozilla.org/",
+        description: "Kho tài liệu kỹ thuật tin cậy về HTML, CSS, JavaScript, HTTP, bảo mật web và tư duy phát triển phần mềm."
+      },
+      {
+        category: "Lập trình & Thuật toán",
+        title: "Tài liệu Chính thức Ngôn ngữ Python",
+        org: "Python Software Foundation",
+        url: "https://docs.python.org/3/",
+        description: "Tài liệu hướng dẫn ngôn ngữ lập trình Python từ cơ bản đến cấu trúc dữ liệu, hàm và xử lý tệp."
+      },
+      {
+        category: "Đám mây & Dữ liệu",
+        title: "Microsoft Learn — Điện toán Đám mây & Dữ liệu",
+        org: "Microsoft",
+        url: "https://learn.microsoft.com/en-us/training/",
+        description: "Học liệu trực tuyến có cấu trúc về hạ tầng đám mây, phân tích dữ liệu, bảng tính và bảo mật hệ thống."
+      }
+    ];
+
+    const STORAGE_KEY = "tin_hoc_ai_file_paths_v1";
+
+    /**
+     * Lấy cấu hình đường dẫn file do người dùng lưu (nếu có), mặc định dùng tên file chuẩn
+     */
+    function getFilePaths() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        const result = {};
+        for (const mod of COURSE_MODULES) {
+          result[mod.id] = {
+            slide: (parsed[mod.id] && parsed[mod.id].slide) || mod.defaultSlideFile,
+            lab: (parsed[mod.id] && parsed[mod.id].lab) || mod.defaultLabFile
+          };
+        }
+        return result;
+      } catch (err) {
+        const fallback = {};
+        for (const mod of COURSE_MODULES) {
+          fallback[mod.id] = {
+            slide: mod.defaultSlideFile,
+            lab: mod.defaultLabFile
+          };
+        }
+        return fallback;
+      }
+    }
+
+    let currentDrawerMode = "slide"; // 'slide' hoặc 'lab'
+    let activeDetailModuleId = 1;
+    let toastTimer = null;
+
+    /**
+     * Hiển thị thông báo ngắn gọn (thay thế alert)
+     */
+    function showToast(message) {
+      const box = document.getElementById("toastBox");
+      const text = document.getElementById("toastMessage");
+      if (!box || !text) return;
+      text.textContent = message;
+      box.classList.remove("hidden");
+      box.classList.add("flex");
+
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        hideToast();
+      }, 4200);
+    }
+
+    function hideToast() {
+      const box = document.getElementById("toastBox");
+      if (!box) return;
+      box.classList.add("hidden");
+      box.classList.remove("flex");
+    }
+
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    /**
+     * Render lưới 8 thẻ chủ đề dưới chân cây đa
+     */
+    function renderTopicsGrid() {
+      const grid = document.getElementById("topicsGrid");
+      if (!grid) return;
+
+      grid.innerHTML = COURSE_MODULES.map((mod) => `
+        <article class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-400 transition flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span>${mod.icon}</span>
+                <span>${mod.code}</span>
+              </span>
+            </div>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug mb-1.5">
+              ${escapeHtml(mod.title)}
+            </h3>
+            <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+              ${escapeHtml(mod.summary)}
+            </p>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
+            <button
+              type="button"
+              onclick="openModuleDetail(${mod.id}, 'slide')"
+              class="flex-1 py-2 px-2.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition cursor-pointer"
+            >
+              📘 Slide
+            </button>
+            <button
+              type="button"
+              onclick="openModuleDetail(${mod.id}, 'lab')"
+              class="flex-1 py-2 px-2.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition cursor-pointer"
+            >
+              🧪 Lab
+            </button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    /**
+     * Mở bảng danh sách 8 bài khi bấm vào nhánh SLIDE hoặc LAB
+     */
+    function openModuleDrawer(mode) {
+      currentDrawerMode = mode === "lab" ? "lab" : "slide";
+      const header = document.getElementById("drawerHeader");
+      const subtitle = document.getElementById("drawerSubtitle");
+      const title = document.getElementById("drawerTitle");
+      const body = document.getElementById("drawerBody");
+      const paths = getFilePaths();
+
+      if (currentDrawerMode === "slide") {
+        header.className = "px-5 py-4 bg-emerald-800 text-white flex items-center justify-between gap-3";
+        subtitle.textContent = "Nhánh Lý Thuyết • 8 Chủ Đề Bài Giảng";
+        title.textContent = "Danh Sách Slide Môn Tin Học & Ứng Dụng AI";
+      } else {
+        header.className = "px-5 py-4 bg-amber-700 text-white flex items-center justify-between gap-3";
+        subtitle.textContent = "Nhánh Thực Hành • 8 Bài Lab Theo Chủ Đề";
+        title.textContent = "Danh Sách Bài Tập Lab Thực Hành";
+      }
+
+      body.innerHTML = COURSE_MODULES.map((mod) => {
+        const fileName = currentDrawerMode === "slide" ? paths[mod.id].slide : paths[mod.id].lab;
+        const desc = currentDrawerMode === "slide" ? mod.summary : mod.labObjective;
+        const badgeClass =
+          currentDrawerMode === "slide"
+            ? "bg-emerald-100 text-emerald-900 border-emerald-200"
+            : "bg-amber-100 text-amber-900 border-amber-200";
+        const btnClass =
+          currentDrawerMode === "slide"
+            ? "bg-emerald-700 hover:bg-emerald-800 text-white"
+            : "bg-amber-600 hover:bg-amber-700 text-white";
+
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1.5 min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeClass}">
+                  ${mod.icon} ${mod.code}
+                </span>
+                <span class="text-xs text-slate-500 font-mono truncate">
+                  File: ${escapeHtml(fileName)}
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900">
+                ${escapeHtml(mod.title)}
+              </h4>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                ${escapeHtml(desc)}
+              </p>
+            </div>
+
+            <div class="flex sm:flex-col items-stretch sm:items-end gap-2 shrink-0">
+              <button
+                type="button"
+                onclick="openModuleDetail(${mod.id}, '${currentDrawerMode}')"
+                class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold ${btnClass} transition cursor-pointer whitespace-nowrap"
+              >
+                Mở chi tiết →
+              </button>
+              <button
+                type="button"
+                onclick="launchAttachment(${mod.id}, '${currentDrawerMode}')"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition cursor-pointer whitespace-nowrap"
+              >
+                Mở / Tải file
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      openModal("drawerModal");
+    }
+
+    /**
+     * Mở modal chi tiết của một bài cụ thể (hiển thị cả phần Slide & Lab để học viên dễ đối chiếu)
+     */
+    function openModuleDetail(moduleId, focusTab = "slide") {
+      const mod = COURSE_MODULES.find((item) => item.id === moduleId);
+      if (!mod) return;
+
+      activeDetailModuleId = mod.id;
+      const paths = getFilePaths();
+      const slideFile = paths[mod.id].slide;
+      const labFile = paths[mod.id].lab;
+
+      const badge = document.getElementById("detailBadge");
+      const title = document.getElementById("detailTitle");
+      const body = document.getElementById("detailBody");
+
+      badge.textContent = `${mod.code} • ${focusTab === "lab" ? "Trọng tâm Lab & Thực hành" : "Trọng tâm Slide & Lý thuyết"}`;
+      title.textContent = `${mod.icon} ${mod.title}`;
+
+      const slideBullets = mod.slideHighlights
+        .map((item) => `<li class="flex items-start gap-2"><span class="text-emerald-600 font-bold">•</span><span>${escapeHtml(item)}</span></li>`)
+        .join("");
+
+      const labBullets = mod.labTasks
+        .map((item, idx) => `<li class="flex items-start gap-2"><span class="font-bold text-amber-700">${idx + 1}.</span><span>${escapeHtml(item)}</span></li>`)
+        .join("");
+
+      body.innerHTML = `
+        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+            Tổng quan chủ đề
+          </h4>
+          <p class="text-sm text-slate-800 leading-relaxed">
+            ${escapeHtml(mod.summary)}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Khối Slide -->
+          <div class="rounded-2xl border ${focusTab === "slide" ? "border-emerald-400 bg-emerald-50/40" : "border-slate-200 bg-white"} p-4 flex flex-col justify-between gap-4">
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <h4 class="text-base font-extrabold text-emerald-900">
+                  📘 Nội dung Slide
+                </h4>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  Lý thuyết
+                </span>
+              </div>
+              <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5">
+                ${slideBullets}
+              </ul>
+            </div>
+
+            <div class="pt-3 border-t border-emerald-900/10 space-y-2">
+              <p class="text-xs text-slate-600 truncate" title="${escapeHtml(slideFile)}">
+                File Slide: <code class="font-semibold text-slate-900">${escapeHtml(slideFile)}</code>
+              </p>
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onclick="launchAttachment(${mod.id}, 'slide')"
+                  class="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white transition cursor-pointer"
+                >
+                  Mở file Slide
+                </button>
+                <a
+                  href="${encodeURI(slideFile)}"
+                  download
+                  class="py-2 px-3 rounded-xl text-xs font-bold bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 transition text-center"
+                >
+                  Tải xuống
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Khối Lab -->
+          <div class="rounded-2xl border ${focusTab === "lab" ? "border-amber-400 bg-amber-50/40" : "border-slate-200 bg-white"} p-4 flex flex-col justify-between gap-4">
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <h4 class="text-base font-extrabold text-amber-950">
+                  🧪 Yêu cầu bài Lab
+                </h4>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                  Thực hành
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm font-medium text-amber-950 bg-amber-100/60 rounded-xl p-2.5">
+                <strong>Mục tiêu:</strong> ${escapeHtml(mod.labObjective)}
+              </p>
+              <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5">
+                ${labBullets}
+              </ul>
+            </div>
+
+            <div class="pt-3 border-t border-amber-900/10 space-y-2">
+              <p class="text-xs text-slate-600 truncate" title="${escapeHtml(labFile)}">
+                File Lab: <code class="font-semibold text-slate-900">${escapeHtml(labFile)}</code>
+              </p>
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onclick="launchAttachment(${mod.id}, 'lab')"
+                  class="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition cursor-pointer"
+                >
+                  Mở file Lab
+                </button>
+                <a
+                  href="${encodeURI(labFile)}"
+                  download
+                  class="py-2 px-3 rounded-xl text-xs font-bold bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 transition text-center"
+                >
+                  Tải xuống
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      openModal("detailModal");
+    }
+
+    /**
+     * Mở file đính kèm (hỗ trợ cả đường dẫn http/https lẫn file cục bộ cùng thư mục)
+     */
+    function launchAttachment(moduleId, kind) {
+      const paths = getFilePaths();
+      const targetPath = kind === "lab" ? paths[moduleId].lab : paths[moduleId].slide;
+      if (!targetPath || !targetPath.trim()) {
+        showToast("Chưa có đường dẫn file. Hãy bấm 'Cấu hình đường dẫn file' để thêm.");
+        return;
+      }
+
+      const trimmed = targetPath.trim();
+      const win = window.open(encodeURI(trimmed), "_blank", "noopener,noreferrer");
+      if (win) {
+        showToast(`Đang mở "${trimmed}" ở tab mới...`);
+      } else {
+        showToast(`Trình duyệt chặn popup. Hãy dùng nút "Tải xuống" hoặc kiểm tra file "${trimmed}".`);
+      }
+    }
+
+    /**
+     * Mở modal Tài liệu tham khảo với các liên kết chuẩn xác
+     */
+    function openReferencesModal() {
+      const container = document.getElementById("referencesList");
+      if (!container) return;
+
+      container.innerHTML = REFERENCES_LIST.map((ref) => `
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between gap-3">
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-900">
+                ${escapeHtml(ref.category)}
+              </span>
+              <span class="text-xs font-semibold text-slate-500">
+                ${escapeHtml(ref.org)}
+              </span>
+            </div>
+            <h4 class="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+              ${escapeHtml(ref.title)}
+            </h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              ${escapeHtml(ref.description)}
+            </p>
+            <p class="text-[11px] font-mono text-sky-700 break-all pt-1">
+              ${escapeHtml(ref.url)}
+            </p>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+            <a
+              href="${escapeAttr(ref.url)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-700 hover:bg-sky-800 text-white transition"
+            >
+              Mở tài liệu ↗
+            </a>
+            <button
+              type="button"
+              onclick="copyLink('${escapeAttr(ref.url)}')"
+              class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            >
+              Sao chép link
+            </button>
+          </div>
+        </div>
+      `).join("");
+
+      openModal("referencesModal");
+    }
+
+    /**
+     * Sao chép liên kết vào clipboard (tương thích cả môi trường iframe)
+     */
+    function copyLink(url) {
+      try {
+        const tempInput = document.createElement("input");
+        tempInput.value = url;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        showToast("Đã sao chép liên kết tài liệu tham khảo.");
+      } catch (err) {
+        showToast("Không thể tự động sao chép, bạn có thể mở trực tiếp liên kết.");
+      }
+    }
+
+    /**
+     * Mở modal cấu hình đường dẫn file Slide & Lab cho cả 8 bài
+     */
+    function openPathConfigModal() {
+      const container = document.getElementById("configInputs");
+      if (!container) return;
+      const paths = getFilePaths();
+
+      container.innerHTML = COURSE_MODULES.map((mod) => `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 space-y-2.5">
+          <div class="text-xs sm:text-sm font-bold text-slate-900">
+            ${mod.icon} ${escapeHtml(mod.code)}: ${escapeHtml(mod.title)}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-emerald-800 mb-1">
+                Đường dẫn / tên file Slide
+              </label>
+              <input
+                type="text"
+                data-module-id="${mod.id}"
+                data-kind="slide"
+                value="${escapeAttr(paths[mod.id].slide)}"
+                class="w-full px-3 py-2 rounded-xl text-xs bg-white border border-slate-300 focus:border-emerald-600 focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-amber-800 mb-1">
+                Đường dẫn / tên file Lab
+              </label>
+              <input
+                type="text"
+                data-module-id="${mod.id}"
+                data-kind="lab"
+                value="${escapeAttr(paths[mod.id].lab)}"
+                class="w-full px-3 py-2 rounded-xl text-xs bg-white border border-slate-300 focus:border-amber-600 focus:outline-none font-mono"
+              />
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      openModal("configModal");
+    }
+
+    /**
+     * Lưu cấu hình đường dẫn file vào localStorage và cập nhật giao diện
+     */
+    function saveFilePaths() {
+      const inputs = document.querySelectorAll("#configInputs input[data-module-id]");
+      const nextPaths = {};
+
+      for (const mod of COURSE_MODULES) {
+        nextPaths[mod.id] = {
+          slide: mod.defaultSlideFile,
+          lab: mod.defaultLabFile
+        };
+      }
+
+      inputs.forEach((inp) => {
+        const id = Number(inp.getAttribute("data-module-id"));
+        const kind = inp.getAttribute("data-kind");
+        const val = inp.value.trim();
+        if (nextPaths[id] && (kind === "slide" || kind === "lab")) {
+          nextPaths[id][kind] = val;
+        }
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextPaths));
+      } catch (err) {
+        // Bỏ qua nếu trình duyệt chặn lưu trữ
+      }
+
+      closeModal("configModal");
+      showToast("Đã lưu cấu hình đường dẫn file Slide & Lab.");
+
+      // Làm mới nội dung nếu các modal đang mở
+      const drawer = document.getElementById("drawerModal");
+      if (drawer && !drawer.classList.contains("hidden")) {
+        openModuleDrawer(currentDrawerMode);
+      }
+      const detail = document.getElementById("detailModal");
+      if (detail && !detail.classList.contains("hidden")) {
+        openModuleDetail(activeDetailModuleId, currentDrawerMode);
+      }
+    }
+
+    /**
+     * Khôi phục tên file mặc định ban đầu
+     */
+    function resetFilePaths() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) {
+        // Bỏ qua nếu lỗi lưu trữ
+      }
+      openPathConfigModal();
+      showToast("Đã khôi phục tên file mặc định.");
+    }
+
+    /**
+     * Hỗ trợ đóng modal bằng phím Escape hoặc bấm ra ngoài vùng nội dung
+     */
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        ["detailModal", "configModal", "drawerModal", "referencesModal"].forEach((id) => {
+          closeModal(id);
+        });
+      }
+    });
+
+    ["drawerModal", "detailModal", "referencesModal", "configModal"].forEach((modalId) => {
+      const el = document.getElementById(modalId);
+      if (el) {
+        el.addEventListener("click", (event) => {
+          if (event.target === el) {
+            closeModal(modalId);
+          }
+        });
+      }
+    });
+
+    // Hàm escape an toàn để tránh chèn mã HTML ngoài ý muốn
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str);
+    }
+
+    // Khởi tạo giao diện khi tải trang
+    window.addEventListener("DOMContentLoaded", () => {
+      renderTopicsGrid();
+    });
+  </script>
+</body>
+</html>
